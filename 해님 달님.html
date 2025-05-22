@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>해님 달님 - 시나리오 게임</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #e3f2fd; /* 전체적인 밝은 배경 */
+            color: #333;
+            transition: background-color 0.5s ease; /* 배경색 부드럽게 전환 */
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1565c0; /* 제목 색상 */
+            margin-bottom: 10px;
+        }
+         .description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            font-style: italic;
+        }
+        .chapter-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .chapter-info h2 {
+            margin: 0 0 5px 0;
+            color: #0d47a1; /* 챕터 제목 색상 */
+        }
+        .scene-text {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            white-space: pre-wrap; /* 줄바꿈 적용 */
+        }
+        .choices button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #b0bec5; /* 버튼 테두리 색상 */
+            border-radius: 5px;
+            background-color: #e0f7fa; /* 연한 버튼 배경색 */
+            cursor: pointer;
+            font-size: 1em;
+            text-align: left;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .choices button:hover {
+            background-color: #b2ebf2; /* 호버 시 배경색 */
+            transform: translateY(-2px); /* 살짝 올라가는 효과 */
+        }
+        .next-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1565c0; /* 다음 버튼 색상 */
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-align: center;
+        }
+        .next-button:hover {
+            background-color: #0d47a1; /* 호버 시 색상 */
+        }
+        .end-message {
+            text-align: center;
+            font-weight: bold;
+            color: #c0392b; /* 종료 메시지 색상 */
+            margin-top: 30px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="chapter-info">
+        <h2 id="chapter-title"></h2>
+        <p class="description" id="chapter-description"></p>
+    </div>
+    <div class="scene-text" id="scene-text"></div>
+    <div class="choices" id="choices-container"></div>
+    <button class="next-button" id="next-scene-button" style="display: none;">다음</button>
+    <p class="end-message" id="end-message" style="display: none;"></p>
+</div>
+
+<script>
+    // 모든 챕터의 JSON 데이터를 합친 객체
+    const gameData = {
+      "chapters": {
+        "chapter1": {
+          "id": "chapter1",
+          "title": "소원과 약속",
+          "description": "깊은 산속, 자식 없이 살아가는 부부의 외로운 삶이 펼쳐집니다.",
+          "scenes": [
+            { "id": "scene1_intro", "type": "narrative", "text": "옛날 어느 깊은 산속에 한 남자와 여자가 살고 있었습니다. 그들은 열심히 일하며 평범하게 살았지만, 슬프게도 자식이 없었습니다. 부부는 매일 밤 하늘의 별들을 보며 아이를 갖게 해달라고 기도했습니다.", "next": "scene2_well" },
+            { "id": "scene2_well", "type": "narrative", "text": "어느 날, 여자가 우물가에서 빨래를 하고 있을 때였습니다. 갑자기 숲에서 커다란 호랑이 한 마리가 나타났습니다. 호랑이는 천천히 다가와 여자를 노려보았습니다.", "next": "scene3_tiger_encounter_choice" },
+            { "id": "scene3_tiger_encounter_choice", "type": "choice", "text": "호랑이를 발견한 여자는 어떻게 해야 할까요?", "choices": [ { "id": "run_away", "text": "도망친다", "consequence": "호랑이가 쫓아와 결국 잡힘", "next": "scene4_run_away" }, { "id": "stand_brave", "text": "용기를 내어 맞선다", "consequence": "호랑이가 놀라 잠시 물러나지만 곧 돌아옴", "next": "scene4_stand_brave" }, { "id": "plead", "text": "간절히 빈다", "consequence": "호랑이의 요구 듣기 (원작 전개)", "next": "scene4_plead" }, { "id": "call_for_help", "text": "주변에 도움을 청한다", "consequence": "아무도 오지 않고 호랑이가 더 화를 냄", "next": "scene4_call_help" } ] },
+            { "id": "scene4_run_away", "type": "narrative", "text": "여자는 공포에 질려 빨래를 던져두고 도망치기 시작했습니다. 하지만 호랑이는 빠르게 그녀를 쫓아왔고, 결국 그녀 앞에 우뚝 서서 도망갈 길을 막아섰습니다. \"어디로 도망치려 했지?\" 호랑이가 으르렁거렸습니다.", "next": "scene5_tiger_threat" },
+            { "id": "scene4_stand_brave", "type": "narrative", "text": "여자는 두려움을 억누르고 빨래방망이를 들고 호랑이를 향해 외쳤습니다. \"물러가! 더 이상 다가오지 마!\" 호랑이는 잠시 놀란 듯 뒤로 물러섰지만, 곧 이빨을 드러내며 다시 다가왔습니다. \"용감하구나, 하지만 그것으로는 부족해.\" 호랑이가 말했습니다.", "next": "scene5_tiger_threat" },
+            { "id": "scene4_plead", "type": "narrative", "text": "여자는 무릎을 꿇고 호랑이에게 간절히 빌었습니다. \"제발 나를 살려주세요. 내가 무엇을 해드릴 수 있을까요?\" 호랑이는 천천히 그녀 주위를 돌며 생각하는 듯했습니다. \"나는 배가 고프다. 하지만 네가 나에게 줄 수 있는 것이 있다면, 오늘은 너를 살려줄 수도 있지.\" 호랑이가 말했습니다.", "next": "scene5_tiger_threat" },
+            { "id": "scene4_call_help", "type": "narrative", "text": "여자는 다급하게 소리쳤습니다. \"살려주세요! 누구 없나요?\" 하지만 깊은 산속에서 그녀의 외침을 들을 사람은 아무도 없었습니다. 호랑이는 더욱 화가 나서 으르렁거렸습니다. \"소리쳐봤자 소용없어. 여기서는 아무도 너를 도와줄 수 없어.\"", "next": "scene5_tiger_threat" },
+            { "id": "scene5_tiger_threat", "type": "narrative", "text": "호랑이는 날카로운 발톱을 드러내며 말했습니다. \"나는 배가 고프다. 오늘 네가 내 먹이가 될 것 같구나.\" 여자는 절망 속에서 마지막 희망을 찾아 생각했습니다.", "next": "scene6_tiger_demand_choice" },
+            { "id": "scene6_tiger_demand_choice", "type": "choice", "text": "호랑이의 위협에 여자는 어떻게 대응할까요?", "choices": [ { "id": "promise_child", "text": "아이를 주겠다고 약속한다", "consequence": "원작 전개로 이어짐", "next": "scene7_promise_child" }, { "id": "self_sacrifice", "text": "대신 자신을 잡아먹으라고 한다", "consequence": "희생 루트 (나중에 남편과 아이들이 복수하는 이야기로 전개)", "next": "scene7_self_sacrifice" }, { "id": "alternative_offer", "text": "다른 제안을 한다", "consequence": "\"내가 매일 음식을 가져다 줄게요\"", "next": "scene7_alternative_offer" }, { "id": "lie", "text": "거짓말을 한다", "consequence": "\"마을에 더 맛있는 음식이 있어요\"", "next": "scene7_lie" } ] },
+            { "id": "scene7_promise_child", "type": "narrative", "text": "\"제발 나를 살려주세요,\" 여자가 간절히 빌었습니다. \"남편과 함께 오랫동안 아이를 기다려왔어요. 우리에게 아이가 생기면 그 아이를 당신에게 바치겠습니다.\" 호랑이는 잠시 생각하더니 고개를 끄덕였습니다. \"좋아, 하지만 약속을 어기면 반드시 너를 찾아와 잡아먹을 것이다.\" 여자는 안도의 숨을 내쉬며 고개를 끄덕였습니다.", "next": "scene8_return_home" },
+            { "id": "scene7_self_sacrifice", "type": "narrative", "text": "\"제발 내 목숨만 살려주세요,\" 여자는 애원하는 대신 결단을 내렸습니다. \"나를 잡아먹고 싶다면 지금 잡아먹어도 좋아요. 하지만 제 남편은 해치지 말아주세요. 그는 아무것도 모릅니다.\" 호랑이는 의외의 제안에 놀란 듯 여자를 바라보았습니다. \"넌 정말 용감하구나. 오늘은 너를 살려주마. 하지만 내가 다시 왔을 때, 더 가치 있는 것을 내놓아야 할 것이다.\"", "next": "scene8_return_home" },
+            { "id": "scene7_alternative_offer", "type": "narrative", "text": "\"매일 당신을 위해 음식을 준비해 드리겠습니다,\" 여자가 제안했습니다. \"제가 정성껏 음식을 마련해 이곳에 가져다 드릴게요. 그러니 제발 저를 잡아먹지 말아주세요.\" 호랑이는 머리를 기울이며 생각했습니다. \"흥미로운 제안이군. 하루에 한 끼씩, 일주일간 가져온다면 너를 살려주마. 하지만 한 번이라도 약속을 어기면, 그날로 너는 내 먹이가 될 것이다.\"", "next": "scene8_return_home" },
+            { "id": "scene7_lie", "type": "narrative", "text": "여자는 떨리는 목소리로 말했습니다. \"마을에는 저보다 훨씬 더 맛있는 음식이 많이 있어요. 제가 당신을 마을로 안내할게요.\" 호랑이는 여자의 눈을 날카롭게 쳐다보며 으르렁거렸습니다. \"네가 거짓말을 하고 있다는 것을 알 수 있어. 하지만 네 꾀가 마음에 든다. 오늘은 너를 살려주지만, 다음에 만났을 때는 더 나은 제안을 가져오거라.\"", "next": "scene8_return_home" },
+            { "id": "scene8_return_home", "type": "narrative", "text": "여자는 겨우 목숨을 건진 채 집으로 돌아왔습니다. 남편에게 호랑이와의 만남과 자신이 한 약속에 대해 이야기했습니다. 부부는 그날 밤 오랫동안 이야기를 나누었고, 앞으로 어떻게 해야 할지 고민했습니다. 하지만 무슨 일이 있어도 서로를 지키기로 약속했습니다.\n\n챕터 1 종료.", "next": "chapter2_start" }
+          ]
+        },
+        "chapter2": {
+          "id": "chapter2",
+          "title": "쌍둥이의 탄생",
+          "description": "몇 달 후, 부부의 집에서 쌍둥이 남매가 태어납니다.",
+          "scenes": [
+            { "id": "scene1_twins_birth", "type": "narrative", "text": "부부는 드디어 쌍둥이 남매를 출산하게 되었습니다. 행복한 순간이었지만, 그들은 호랑이와의 약속이 여전히 마음에 걸렸습니다.", "next": "scene2_tiger_return_chap2" },
+            { "id": "scene2_tiger_return_chap2", "type": "narrative", "text": "어느 날, 호랑이가 다시 나타났습니다. 부부는 두려움에 떨며 호랑이를 맞이했습니다.", "next": "scene3_twins_after_birth_choice_chap2" },
+            { "id": "scene3_twins_after_birth_choice_chap2", "type": "choice", "text": "아이들이 태어난 후, 부부는 어떻게 해야 할까요?", "choices": [ { "id": "hide_children_chap2", "text": "아이들을 숨긴다", "consequence": "호랑이가 냄새를 맡고 발견함 (위험 증가)", "next": "scene4_hide_children_chap2" }, { "id": "call_for_help_chap2", "text": "마을 사람들에게 도움을 청한다", "consequence": "마을 사람들이 보호를 약속하지만 신뢰도 불확실 (공동체 루트)", "next": "scene4_call_for_help_chap2" }, { "id": "plant_tree_chap2", "text": "나무를 심는다", "consequence": "원작처럼 나무가 자라기를 기다림 (정통 루트)", "next": "scene4_plant_tree_chap2" }, { "id": "seek_wisdom_chap2", "text": "노인을 찾아가 지혜를 구한다", "consequence": "특별한 부적이나 조언을 받음 (지혜 루트)", "next": "scene4_seek_wisdom_chap2" } ] },
+            { "id": "scene4_hide_children_chap2", "type": "narrative", "text": "부부는 아이들을 숨기기로 결정했습니다. 그러나 호랑이는 그들의 냄새를 맡고 곧 아이들을 발견했습니다. \"너희가 내 약속을 어겼구나!\" 호랑이가 으르렁거렸습니다.", "next": "scene5_tiger_threat_chap2" },
+            { "id": "scene4_call_for_help_chap2", "type": "narrative", "text": "부부는 마을 사람들에게 도움을 요청했습니다. 마을 사람들은 보호를 약속했지만, 그들의 진심을 의심하는 마음이 있었습니다. \"우리가 도와줄게, 하지만 믿을 수 있을까?\"", "next": "scene5_tiger_threat_chap2" },
+            { "id": "scene4_plant_tree_chap2", "type": "narrative", "text": "부부는 나무를 심기로 결정했습니다. 나무가 자라기를 기다리며 호랑이의 방문을 대비했습니다. 그러나 시간이 지나도 호랑이는 나타나지 않았습니다.", "next": "scene5_tiger_return_chap2" },
+            { "id": "scene4_seek_wisdom_chap2", "type": "narrative", "text": "부부는 노인을 찾아가 지혜를 구했습니다. 노인은 특별한 부적을 주며 말했습니다. \"이 부적이 너희를 보호해 줄 것이다. 하지만 조심하거라.\"", "next": "scene5_tiger_return_chap2" },
+            { "id": "scene5_tiger_return_chap2", "type": "narrative", "text": "호랑이가 다시 돌아왔습니다. 부부는 긴장하며 호랑이를 맞이했습니다. \"아이들이 아직 어려운가?\" 호랑이가 물었습니다.", "next": "scene6_tiger_demand_choice_chap2" },
+            { "id": "scene5_tiger_threat_chap2", "type": "narrative", "text": "호랑이는 눈앞에 나타난 아이들을 보며 으르렁거렸습니다. 부부는 아이들을 지키기 위해 필사적으로 방법을 찾아야 했습니다.", "next": "scene6_tiger_demand_choice_chap2" },
+            { "id": "scene6_tiger_demand_choice_chap2", "type": "choice", "text": "호랑이가 돌아왔을 때, 부부는 어떻게 대응할까요?", "choices": [ { "id": "ask_for_time_chap2", "text": "시간을 더 달라고 요청한다", "consequence": "\"아이들이 아직 어려요\" (원작 전개)", "next": "scene7_ask_for_time_chap2" }, { "id": "offer_alternate_food_chap2", "text": "다른 먹을 것을 제안한다", "consequence": "소나 다른 동물을 대신 줌 (대체 거래 루트)", "next": "scene7_offer_alternate_food_chap2" }, { "id": "lie_about_health_chap2", "text": "거짓말로 속인다", "consequence": "\"아이들이 병에 걸렸어요\" (속임수 루트, 나중에 호랑이가 더 분노함)", "next": "scene7_lie_about_health_chap2" }, { "id": "confront_tiger_chap2", "text": "정면으로 대항한다", "consequence": "무기를 들고 맞섬 (투쟁 루트, 성공 확률 낮음)", "next": "scene7_confront_tiger_chap2" } ] },
+            { "id": "scene7_ask_for_time_chap2", "type": "narrative", "text": "\"아이들이 아직 어려서 더 시간이 필요해요,\" 부부가 간청했습니다. 호랑이는 잠시 생각한 후, 고개를 끄덕였습니다. \"좋아, 하지만 다음에 반드시 약속을 지켜야 한다.\"", "next": "scene8_after_tiger_chap2" },
+            { "id": "scene7_offer_alternate_food_chap2", "type": "narrative", "text": "\"소를 대신 드리겠습니다,\" 부부가 제안했습니다. 호랑이는 흥미롭게 고개를 기울였습니다. \"흥미로운 제안이군. 그럼 소를 가져오도록 해라.\"", "next": "scene8_after_tiger_chap2" },
+            { "id": "scene7_lie_about_health_chap2", "type": "narrative", "text": "\"아이들이 병에 걸렸어요,\" 부부가 거짓말했습니다. 호랑이는 분노하며 말했습니다. \"그렇다면 나를 속인 대가를 치르게 될 것이다!\"", "next": "scene8_after_tiger_chap2" },
+            { "id": "scene7_confront_tiger_chap2", "type": "narrative", "text": "부부는 호랑이에게 정면으로 맞섰습니다. \"우리는 당신을 두려워하지 않겠습니다!\" 호랑이는 놀라며 잠시 멈췄지만, 곧 다시 공격해왔습니다.", "next": "scene8_after_tiger_chap2" },
+            { "id": "scene8_after_tiger_chap2", "type": "narrative", "text": "부부는 호랑이와의 대치 후, 앞으로 어떻게 해야 할지 고민했습니다. 그들은 서로를 지키기로 다짐하며, 새로운 운명을 맞이할 준비를 했습니다.\n\n챕터 2 종료.", "next": "chapter3_start" }
+          ]
+        },
+        "chapter3": {
+          "id": "chapter3",
+          "title": "나무와 계략",
+          "description": "집 앞에 심은 나무가 자란 후, 호랑이가 다시 나타납니다.",
+          "scenes": [
+            { "id": "scene1_tree_growth", "type": "narrative", "text": "부부가 심은 나무가 자라면서 그들의 삶에 희망을 주었습니다. 그러나 어느 날, 호랑이가 다시 나타났습니다.", "next": "scene2_tiger_return_chap3" },
+            { "id": "scene2_tiger_return_chap3", "type": "narrative", "text": "호랑이는 부부에게 다가와 말했습니다. \"너희의 약속을 잊지 않았겠지? 나무가 자란 만큼, 내 요구도 커졌다.\"", "next": "scene3_tiger_demand_choice_chap3" },
+            { "id": "scene3_tiger_demand_choice_chap3", "type": "choice", "text": "호랑이가 다시 왔을 때, 부부는 어떻게 해야 할까요?", "choices": [ { "id": "escape_tree_chap3", "text": "나무로 도망간다", "consequence": "원작처럼 나무에 올라감 (정통 루트)", "next": "scene4_escape_tree_chap3" }, { "id": "find_alternate_route_chap3", "text": "다른 도피 경로를 찾는다", "consequence": "동굴이나 숨겨진 길을 통해 도망 시도 (모험 루트)", "next": "scene4_find_alternate_route_chap3" }, { "id": "seek_village_help_chap3", "text": "마을 사람들의 도움을 받는다", "consequence": "마을 사람들과 함께 호랑이에 맞섬 (공동체 루트)", "next": "scene4_seek_village_help_chap3" }, { "id": "set_trap_chap3", "text": "함정을 설치해둔다", "consequence": "호랑이가 접근할 때 작동하는 함정 (전략 루트)", "next": "scene4_set_trap_chap3" } ] },
+            { "id": "scene4_escape_tree_chap3", "type": "narrative", "text": "부부는 나무로 도망쳤습니다. 나무에 올라가 숨으면서 호랑이를 바라보았습니다. 호랑이는 짖궂게 웃으며 말했습니다. \"너희가 나무에 올라가면 안전하다고 생각하겠지?\"", "next": "scene5_after_climbing_chap3" },
+            { "id": "scene4_find_alternate_route_chap3", "type": "narrative", "text": "부부는 동굴로 도망가기로 결정했습니다. 그러나 동굴은 어두워서 길을 찾기 어려웠습니다. 호랑이는 그들을 추적하고 있었습니다.", "next": "scene5_after_climbing_chap3" },
+            { "id": "scene4_seek_village_help_chap3", "type": "narrative", "text": "부부는 마을 사람들에게 도움을 요청했습니다. 마을 사람들은 함께 호랑이에 맞서기로 결심했습니다. \"우리가 너희를 도와줄게!\"", "next": "scene5_after_climbing_chap3" },
+            { "id": "scene4_set_trap_chap3", "type": "narrative", "text": "부부는 호랑이가 다가올 때 작동하는 함정을 설치했습니다. 호랑이가 접근해왔고, 함정이 작동할 준비가 되어 있었습니다.", "next": "scene5_after_climbing_chap3" },
+            { "id": "scene5_after_climbing_chap3", "type": "narrative", "text": "부부는 나무에 올라가면서 호랑이의 반응을 기다렸습니다. 호랑이는 그들을 향해 다가오며 말했습니다. \"이제 너희는 나무 위에 갇혔구나!\"", "next": "scene6_tree_climbing_choice_chap3" },
+            { "id": "scene6_tree_climbing_choice_chap3", "type": "choice", "text": "나무에 올라간 후, 부부는 어떻게 해야 할까요?", "choices": [ { "id": "wait_quietly_chap3", "text": "조용히 기다린다", "consequence": "호랑이가 스스로 꾀를 내도록 함 (원작 전개)", "next": "scene7_wait_quietly_chap3" }, { "id": "deceive_tiger_chap3", "text": "호랑이를 속인다", "consequence": "\"우리는 이미 떠났어요\" 등의 속임수 (기만 루트)", "next": "scene7_deceive_tiger_chap3" }, { "id": "throw_objects_chap3", "text": "나무에서 물건을 던져 호랑이를 쫓는다", "consequence": "호랑이를 화나게 할 위험 (공격 루트)", "next": "scene7_throw_objects_chap3" }, { "id": "pray_to_god_chap3", "text": "신에게 기도한다", "consequence": "신비한 도움을 요청 (신앙 루트)", "next": "scene7_pray_to_god_chap3" } ] },
+            { "id": "scene7_wait_quietly_chap3", "type": "narrative", "text": "부부는 조용히 기다리며 호랑이의 행동을 지켜보았습니다. 호랑이는 고민에 빠져 있었습니다. \"어떻게 해야 할까?\"", "next": "scene8_tiger_grandmother_chap3" },
+            { "id": "scene7_deceive_tiger_chap3", "type": "narrative", "text": "부부는 호랑이를 속였습니다. \"우리는 이미 떠났어요!\" 호랑이는 혼란스러워하며 주위를 살폈습니다.", "next": "scene8_tiger_grandmother_chap3" },
+            { "id": "scene7_throw_objects_chap3", "type": "narrative", "text": "부부는 나무에서 물건을 던져 호랑이를 쫓았습니다. 그러나 호랑이는 화가 나서 더욱 가까이 다가왔습니다. \"이런 식으로 나를 대할 수는 없다!\"", "next": "scene8_tiger_grandmother_chap3" },
+            { "id": "scene7_pray_to_god_chap3", "type": "narrative", "text": "부부는 신에게 기도했습니다. \"신님, 우리의 목숨을 구해주세요!\" 그러자 신비한 힘이 그들을 감싸주었습니다.", "next": "scene8_tiger_grandmother_chap3" },
+            { "id": "scene8_tiger_grandmother_chap3", "type": "narrative", "text": "호랑이는 할머니로 변장하여 부부에게 다가왔습니다. \"내가 너희 할머니야. 내려와서 나와 함께 가자.\" 부부는 경계하며 호랑이를 바라보았습니다.", "next": "scene9_grandmother_choice_chap3" },
+            { "id": "scene9_grandmother_choice_chap3", "type": "choice", "text": "호랑이의 할머니 변장에 어떻게 대응할까요?", "choices": [ { "id": "show_feet_chap3", "text": "발을 보여달라고 한다", "consequence": "원작처럼 변장을 간파 (정통 루트)", "next": "scene10_show_feet_chap3" }, { "id": "voice_test_chap3", "text": "목소리 테스트를 한다", "consequence": "\"할머니의 목소리가 이렇게 거칠었나요?\" (변형 간파 루트)", "next": "scene10_voice_test_chap3" }, { "id": "lie_response_chap3", "text": "거짓말로 대응한다", "consequence": "\"우리도 곧 내려갈 거예요\" (시간 벌기 루트)", "next": "scene10_lie_response_chap3" }, { "id": "divert_attention_chap3", "text": "다른 주제로 관심 돌리기", "consequence": "\"저쪽에 맛있는 음식이 있어요\" (전략적 회피 루트)", "next": "scene10_divert_attention_chap3" } ] },
+            { "id": "scene10_show_feet_chap3", "type": "narrative", "text": "부부는 호랑이에게 발을 보여달라고 요청했습니다. 호랑이는 당황하며 변장을 간파당했습니다. \"너희가 나를 알아차렸구나!\"", "next": "scene11_after_reveal_chap3" },
+            { "id": "scene10_voice_test_chap3", "type": "narrative", "text": "부부는 호랑이에게 목소리를 물었습니다. \"할머니의 목소리가 이렇게 거칠었나요?\" 호랑이는 당황하며 변장이 드러났습니다.", "next": "scene11_after_reveal_chap3" },
+            { "id": "scene10_lie_response_chap3", "type": "narrative", "text": "부부는 거짓말로 대답했습니다. \"우리도 곧 내려갈 거예요!\" 하지만 호랑이는 눈치를 채고 웃으며 말했습니다. \"너희는 나를 속일 수 없다!\"", "next": "scene11_after_reveal_chap3" },
+            { "id": "scene10_divert_attention_chap3", "type": "narrative", "text": "부부는 호랑이의 관심을 다른 곳으로 돌렸습니다. \"저쪽에 맛있는 음식이 있어요!\" 호랑이는 그 쪽을 바라보며 잠시 혼란스러워했습니다.", "next": "scene11_after_reveal_chap3" },
+            { "id": "scene11_after_reveal_chap3", "type": "narrative", "text": "부부는 호랑이의 정체를 간파했습니다. 이제 그들은 어떻게 대처할지 고민해야 했습니다.\n\n챕터 3 종료.", "next": "chapter4_start" }
+          ]
+        },
+        "chapter4": {
+          "id": "chapter4",
+          "title": "하늘의 도움",
+          "description": "호랑이가 정체를 드러내고 나무를 흔들기 시작하는 위기 상황.",
+          "scenes": [
+            { "id": "scene1_tree_shaking", "type": "narrative", "text": "호랑이가 나무를 흔들기 시작했습니다. 가족은 나무 위에서 추락할 위험에 처했습니다. \"하늘의 도움을 청해야 해!\"", "next": "scene2_tree_shaking_choice_chap4" },
+            { "id": "scene2_tree_shaking_choice_chap4", "type": "choice", "text": "나무가 흔들릴 때, 가족은 어떻게 해야 할까요?", "choices": [ { "id": "ask_for_heaven_help_chap4", "text": "하늘에 도움을 청한다", "consequence": "새끼줄이 내려옴 (원작 전개)", "next": "scene3_heaven_help_chap4" }, { "id": "throw_branch_chap4", "text": "나뭇가지를 꺾어 호랑이에게 던진다", "consequence": "일시적으로 호랑이 방해 (방어 루트)", "next": "scene3_throw_branch_chap4" }, { "id": "look_for_escape_chap4", "text": "밑으로 내려가 도망칠 기회를 노린다", "consequence": "위험하지만 성공하면 새로운 길 (모험 루트)", "next": "scene3_look_for_escape_chap4" }, { "id": "hold_hands_chap4", "text": "가족이 서로 손을 잡고 힘을 모은다", "consequence": "가족의 유대가 신비한 힘을 발휘 (유대 루트)", "next": "scene3_hold_hands_chap4" } ] },
+            { "id": "scene3_heaven_help_chap4", "type": "narrative", "text": "가족이 하늘에 도움을 청하자, 신비한 새끼줄이 내려왔습니다. 모두가 줄을 잡을 수 있도록 준비했습니다.", "next": "scene4_heaven_help_choice_chap4" },
+            { "id": "scene3_throw_branch_chap4", "type": "narrative", "text": "가족은 나뭇가지를 꺾어 호랑이에게 던졌습니다. 호랑이는 잠시 놀라며 멈췄고, 그 틈을 타 가족은 탈출할 기회를 노렸습니다.", "next": "scene4_after_throw_chap4" },
+            { "id": "scene3_look_for_escape_chap4", "type": "narrative", "text": "가족은 나무 아래로 내려가 도망칠 기회를 찾았습니다. 하지만 호랑이가 그들을 지켜보고 있었습니다. 위험한 선택이었습니다.", "next": "scene4_after_escape_chap4" },
+            { "id": "scene3_hold_hands_chap4", "type": "narrative", "text": "가족은 서로 손을 잡고 힘을 모았습니다. 그들의 유대가 신비한 힘을 발휘하며 나무가 흔들림에도 불구하고 안정감을 주었습니다.", "next": "scene4_after_hold_chap4" },
+            // scene3 선택지 이후의 누락된 narrative 장면 (임시 추가된 내용 - 안내 문구 제거됨)
+            { "id": "scene4_after_throw_chap4", "type": "narrative", "text": "나뭇가지로 호랑이를 잠시 방해한 틈을 타 다음 행동을 결정해야 합니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene4_after_escape_chap4", "type": "narrative", "text": "나무 아래로 내려가 도망칠 기회를 엿보는 중입니다. 호랑이의 눈을 피해 조심스럽게 움직여야 합니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene4_after_hold_chap4", "type": "narrative", "text": "가족의 유대로 나무 흔들림에 버틴 후, 앞으로 어떻게 해야 할지 결정해야 합니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene4_heaven_help_choice_chap4", "type": "choice", "text": "하늘에서 새끼줄이 내려왔을 때, 가족은 어떻게 해야 할까요?", "choices": [ { "id": "grab_rope_together_chap4", "text": "모두 함께 줄을 잡는다", "consequence": "원작처럼 가족이 함께 탈출 (정통 루트)", "next": "scene5_grab_rope_together_chap4" }, { "id": "send_children_first_chap4", "text": "아이들만 먼저 보낸다", "consequence": "부모의 희생과 아이들의 생존 (희생 루트)", "next": "scene5_send_children_first_chap4" }, { "id": "throw_special_item_chap4", "text": "특별한 물건을 호랑이에게 던져 방해한다", "consequence": "호랑이를 저지하고 모두 탈출 (전략 루트)", "next": "scene5_throw_special_item_chap4" }, { "id": "find_alternate_escape_chap4", "text": "줄 대신 다른 탈출 방법을 찾는다", "consequence": "나무 뒤편의 비밀 통로 등 (모험 루트)", "next": "scene5_find_alternate_escape_chap4" } ] },
+            { "id": "scene5_grab_rope_together_chap4", "type": "narrative", "text": "가족은 모두 함께 줄을 잡았습니다. 그들은 힘을 합쳐 하늘로 올라갔고, 안전하게 탈출할 수 있었습니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene5_send_children_first_chap4", "type": "narrative", "text": "부모는 아이들만 먼저 보내기로 결정했습니다. \"우리는 너희를 위해 희생할게!\" 부모는 아이들이 안전하게 탈출하도록 도왔습니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene5_throw_special_item_chap4", "type": "narrative", "text": "가족은 특별한 물건을 호랑이에게 던졌습니다. 호랑이는 당황하며 잠시 멈췄고, 그 틈을 타 가족은 탈출했습니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene5_find_alternate_escape_chap4", "type": "narrative", "text": "가족은 나무 뒤편의 비밀 통로를 찾아 탈출하기로 했습니다. 그들은 조심스럽게 나무를 내려갔습니다.", "next": "scene6_after_escape_chap4" },
+            { "id": "scene6_after_escape_chap4", "type": "narrative", "text": "가족은 무사히 나무에서 탈출했습니다. 그러나 호랑이는 여전히 그들을 추적하고 있었습니다. 이제 그들은 어떻게 해야 할까요?", "next": "scene7_tiger_rope_choice_chap4" },
+            { "id": "scene7_tiger_rope_choice_chap4", "type": "choice", "text": "호랑이가 줄을 잡으려 할 때, 가족은 어떻게 해야 할까요?", "choices": [ { "id": "shake_rope_chap4", "text": "줄을 흔들어 호랑이를 떨어뜨린다", "consequence": "원작처럼 호랑이 추락 (정통 루트)", "next": "scene8_shake_rope_chap4" }, { "id": "cut_rope_chap4", "text": "줄을 자른다", "consequence": "결정적 순간에 줄을 잘라 호랑이 추락 (결단 루트)", "next": "scene8_cut_rope_chap4" }, { "id": "give_tiger_chance_chap4", "text": "호랑이에게 마지막 기회를 준다", "consequence": "\"우리를 내버려두면 용서하겠다\" (자비 루트)", "next": "scene8_give_tiger_chance_chap4" }, { "id": "ask_animals_for_help_chap4", "text": "다른 동물들에게 도움을 청한다", "consequence": "숲의 동물들이 나타나 호랑이 방해 (자연 동맹 루트)", "next": "scene8_ask_animals_for_help_chap4" } ] },
+            { "id": "scene8_shake_rope_chap4", "type": "narrative", "text": "가족은 줄을 흔들어 호랑이를 떨어뜨렸습니다. 호랑이는 균형을 잃고 나무에서 추락했습니다. \"이제 끝이다!\"", "next": "scene9_after_tiger_fall_chap4" },
+            { "id": "scene8_cut_rope_chap4", "type": "narrative", "text": "가족은 줄을 자르기로 결정했습니다. 호랑이가 줄을 잡으려 할 때, 줄을 잘라 호랑이를 떨어뜨렸습니다. \"자유다!\"", "next": "scene9_after_tiger_fall_chap4" },
+            { "id": "scene8_give_tiger_chance_chap4", "type": "narrative", "text": "가족은 호랑이에게 마지막 기회를 주기로 했습니다. \"우리를 내버려두면 용서하겠다!\" 호랑이는 잠시 멈췄습니다.", "next": "scene9_after_tiger_fall_chap4" },
+            { "id": "scene8_ask_animals_for_help_chap4", "type": "narrative", "text": "가족은 숲의 동물들에게 도움을 요청했습니다. 동물들이 나타나 호랑이를 방해하며, 가족은 탈출할 수 있었습니다.", "next": "scene9_after_tiger_fall_chap4" },
+            { "id": "scene9_after_tiger_fall_chap4", "type": "narrative", "text": "호랑이가 추락한 후, 가족은 안전하게 탈출했습니다. 이제 그들은 새로운 시작을 맞이할 준비가 되어 있었습니다.\n\n챕터 4 종료.", "next": "chapter5_start" }
+          ]
+        },
+        "chapter5": {
+          "id": "chapter5",
+          "title": "새로운 운명",
+          "description": "호랑이로부터 탈출한 후, 가족의 새로운 운명이 펼쳐집니다.",
+          "scenes": [
+            { "id": "scene1_after_escape_chap5", "type": "narrative", "text": "가족은 호랑이로부터 무사히 탈출한 후, 하늘에 도착했습니다. 그들은 새로운 운명을 선택해야 했습니다.", "next": "scene2_new_destiny_choice_chap5" },
+            { "id": "scene2_new_destiny_choice_chap5", "type": "choice", "text": "하늘에 도착한 후, 가족은 어떻게 해야 할까요?", "choices": [ { "id": "become_stars_chap5", "text": "별이 되기로 한다", "consequence": "원작처럼 해, 달, 별이 됨 (정통 루트)", "next": "scene3_become_stars_chap5" }, { "id": "return_to_earth_chap5", "text": "다시 지상으로 내려간다", "consequence": "새로운 마을에서 삶 시작 (귀환 루트)", "next": "scene3_return_to_earth_chap5" }, { "id": "enter_gods_world_chap5", "text": "신들의 세계에 들어간다", "consequence": "신비로운 존재로 변모 (신화 루트)", "next": "scene3_enter_gods_world_chap5" }, { "id": "time_travel_power_chap5", "text": "시간을 되돌리는 힘을 얻는다", "consequence": "과거로 돌아가 다른 선택 가능 (시간 여행 루트)", "next": "scene3_time_travel_power_chap5" } ] },
+            { "id": "scene3_become_stars_chap5", "type": "narrative", "text": "가족은 별이 되기로 결정했습니다. 그들은 하늘에서 빛나는 별이 되어 영원히 함께하며, 사람들에게 희망을 주었습니다.", "next": "scene4_conclusion_chap5" },
+            { "id": "scene3_return_to_earth_chap5", "type": "narrative", "text": "가족은 다시 지상으로 내려가 새로운 마을에서 새로운 삶을 시작하기로 했습니다. 그들은 서로를 지키며 행복한 일상을 이어갔습니다.", "next": "scene4_conclusion_chap5" },
+            { "id": "scene3_enter_gods_world_chap5", "type": "narrative", "text": "가족은 신들의 세계에 들어가기로 결심했습니다. 그들은 신비로운 존재로 변모하여, 세상을 더욱 아름답게 만드는 역할을 하게 되었습니다.", "next": "scene4_conclusion_chap5" },
+            { "id": "scene3_time_travel_power_chap5", "type": "narrative", "text": "가족은 시간 여행의 힘을 얻기로 했습니다. 그들은 과거로 돌아가 다른 선택을 하며 새로운 운명을 만들어 나갔습니다.", "next": "scene4_conclusion_chap5" },
+            { "id": "scene4_conclusion_chap5", "type": "narrative", "text": "각자의 선택에 따라 가족은 새로운 운명을 맞이하게 되었습니다. 그들은 서로의 사랑과 유대를 통해 어떤 상황에서도 함께할 것입니다.\n\n이야기가 모두 끝났습니다.", "next": "end_game" }
+          ]
+        }
+      }
+    };
+
+    const chapterStartMapping = {
+        "chapter1_start": "scene1_intro",
+        "chapter2_start": "scene1_twins_birth",
+        "chapter3_start": "scene1_tree_growth",
+        "chapter4_start": "scene1_tree_shaking",
+        "chapter5_start": "scene1_after_escape_chap5",
+        "end_game": null
+    };
+
+    let currentSceneId = "chapter1_start";
+    let currentChapterId = "chapter1";
+
+    const chapterTitleElement = document.getElementById('chapter-title');
+    const chapterDescriptionElement = document.getElementById('chapter-description');
+    const sceneTextElement = document.getElementById('scene-text');
+    const choicesContainer = document.getElementById('choices-container');
+    const nextButton = document.getElementById('next-scene-button');
+    const endMessageElement = document.getElementById('end-message');
+
+    function getSceneData(sceneId) {
+        if (chapterStartMapping.hasOwnProperty(sceneId)) {
+            const actualStartSceneId = chapterStartMapping[sceneId];
+            if (actualStartSceneId === null) {
+                return null;
+            }
+            for (const chapId in gameData.chapters) {
+                 const firstSceneOfChapter = gameData.chapters[chapId].scenes[0];
+                 if (firstSceneOfChapter && firstSceneOfChapter.id === actualStartSceneId) {
+                     return firstSceneOfChapter;
+                 }
+            }
+             return undefined;
+        }
+
+        for (const chapId in gameData.chapters) {
+            const scene = gameData.chapters[chapId].scenes.find(s => s.id === sceneId);
+            if (scene) {
+                return scene;
+            }
+        }
+        return undefined;
+    }
+
+    function findAndSetCurrentChapter(sceneId) {
+         if (chapterStartMapping.hasOwnProperty(sceneId)) {
+             // 챕터 시작 특수 ID는 해당 챕터 자체의 정보로 업데이트
+             const chapterId = Object.keys(chapterStartMapping).find(key => chapterStartMapping[key] === sceneId);
+             if (chapterId) {
+                 const actualChapId = chapterId.replace('_start', ''); // '_start' 제거하여 실제 챕터 ID 찾기
+                  if (gameData.chapters[actualChapId]) {
+                     currentChapterId = actualChapId;
+                     chapterTitleElement.innerText = gameData.chapters[actualChapId].title;
+                     chapterDescriptionElement.innerText = gameData.chapters[actualChapId].description;
+                     return;
+                  }
+             }
+             // 만약 특수 시작 ID의 실제 챕터를 못 찾았다면... (드문 경우)
+             chapterTitleElement.innerText = "챕터 정보 없음";
+             chapterDescriptionElement.innerText = "";
+             return;
+         }
+
+         for (const chapId in gameData.chapters) {
+             const scene = gameData.chapters[chapId].scenes.find(s => s.id === sceneId);
+             if (scene) {
+                 currentChapterId = chapId;
+                 chapterTitleElement.innerText = gameData.chapters[chapId].title;
+                 chapterDescriptionElement.innerText = gameData.chapters[chapId].description;
+                 return;
+             }
+         }
+         chapterTitleElement.innerText = "알 수 없는 챕터";
+         chapterDescriptionElement.innerText = "";
+    }
+
+
+    function displayScene(sceneId) {
+        const scene = getSceneData(sceneId);
+
+        if (scene === null) { // 최종 종료 ID 도달
+            sceneTextElement.innerText = "이야기가 모두 끝났습니다.";
+            choicesContainer.innerHTML = '';
+            nextButton.style.display = 'none';
+            endMessageElement.style.display = 'block';
+            endMessageElement.innerText = "게임을 종료합니다. 즐겁게 플레이하셨기를 바랍니다!";
+            document.body.style.backgroundColor = '#cfd8dc';
+
+            // 챕터 정보 숨김
+            document.querySelector('.chapter-info').style.display = 'none';
+
+            return;
+        }
+
+         if (scene === undefined) { // 장면 ID를 찾지 못한 오류
+             sceneTextElement.innerText = `오류: 장면 [${sceneId}]를 찾을 수 없습니다. 게임을 종료합니다.`;
+             choicesContainer.innerHTML = '';
+             nextButton.style.display = 'none';
+             endMessageElement.style.display = 'block';
+             endMessageElement.innerText = "데이터 오류 발생";
+              document.body.style.backgroundColor = '#ffcdd2';
+
+             // 챕터 정보 숨김
+             document.querySelector('.chapter-info').style.display = 'none';
+
+             return;
+         }
+
+        // 챕터 정보 업데이트 (장면 데이터를 찾았을 때)
+        findAndSetCurrentChapter(scene.id);
+        document.querySelector('.chapter-info').style.display = 'block'; // 챕터 정보 다시 표시
+
+
+        currentSceneId = scene.id;
+
+
+        sceneTextElement.innerText = scene.text;
+
+        if (scene.type === "choice") {
+            choicesContainer.innerHTML = '';
+            nextButton.style.display = 'none';
+            endMessageElement.style.display = 'none';
+
+            scene.choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.innerText = choice.text; // consequence 제외
+                button.onclick = () => handleChoice(choice.next);
+                choicesContainer.appendChild(button);
+            });
+        } else {
+            choicesContainer.innerHTML = '';
+            endMessageElement.style.display = 'none';
+
+            if (scene.next) {
+                 nextButton.style.display = 'block';
+                 nextButton.onclick = () => displayScene(scene.next);
+            } else {
+                 nextButton.style.display = 'none';
+                 endMessageElement.style.display = 'block';
+                 endMessageElement.innerText = "이야기의 끝에 도달했습니다.";
+            }
+        }
+        // 챕터에 따른 배경색 변경
+        if (currentChapterId === "chapter1") document.body.style.backgroundColor = '#fbe9e7';
+        else if (currentChapterId === "chapter2") document.body.style.backgroundColor = '#ffebee';
+        else if (currentChapterId === "chapter3") document.body.style.backgroundColor = '#f4f4f4';
+        else if (currentChapterId === "chapter4") document.body.style.backgroundColor = '#e0f2f7';
+        else if (currentChapterId === "chapter5") document.body.style.backgroundColor = '#fff9c4';
+        else document.body.style.backgroundColor = '#e3f2fd';
+    }
+
+    function handleChoice(nextSceneId) {
+        displayScene(nextSceneId);
+    }
+
+    // 게임 시작
+    displayScene("chapter1_start"); // 게임 시작점 특수 ID로 시작
+
+</script>
+
+</body>
+</html>
